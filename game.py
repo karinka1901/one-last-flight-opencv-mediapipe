@@ -1,6 +1,5 @@
 import cv2 as cv
 import pygame
-import sys
 import random
 from detection import FaceDetector
 
@@ -49,7 +48,7 @@ class Game:
         self.bug_spawn_interval = 60  # spawn a new bug every 60 frames 
         self.distance = 0
         self.energy = 100   
-        self.energy_drain = 0.2 # energy lost per frame
+        self.energy_drain = 0.3 # energy lost per frame
         self.energy_boost = 15  # energy gained per butterfly
         self.game_over = False
 
@@ -62,9 +61,9 @@ class Game:
         self.background = pygame.image.load("assets/sprites/sky.png").convert_alpha()
         self.background_y = height - self.background.get_height() 
 
-        # Blow image
-        self.blow_img =pygame.transform.scale(pygame.image.load("assets/sprites/blow.png").convert_alpha(), (70, 50))
-        self.notblow_img = pygame.transform.scale(pygame.image.load("assets/sprites/notblow.png").convert_alpha(), (70, 50))
+        # Cloud blow image
+        self.cloud_blowing_img =pygame.transform.scale(pygame.image.load("assets/sprites/blow.png").convert_alpha(), (70, 50))
+        self.cloud_idle_img = pygame.transform.scale(pygame.image.load("assets/sprites/notblow.png").convert_alpha(), (70, 50))
         self.is_blowing = False
 
     def spawn_bug(self):
@@ -77,6 +76,7 @@ class Game:
             return
         
         self.is_blowing = blowing
+
         # Distance
         self.distance += self.scroll_speed
 
@@ -160,7 +160,7 @@ class Game:
         color = (0, 200, 0) if self.energy > 30 else (200, 0, 0)
         pygame.draw.rect(self.screen, color, (bar_x, bar_y, fill_w, bar_h))
 
-        indicator = self.blow_img if self.is_blowing else self.notblow_img
+        indicator = self.cloud_blowing_img if self.is_blowing else self.cloud_idle_img
         self.screen.blit(indicator, (self.width - indicator.get_width() - 10, 10))
 
         # Game over
