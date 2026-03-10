@@ -53,8 +53,8 @@ class Game:
         
         # Energy system
         self.stamina = 100   
-        self.stamina_drain = 0.4 # energy lost per frame
-        self.stamina_gain = 15  # energy gained per butterfly
+        self.stamina_drain = 0.3 # energy lost per frame
+        self.stamina_gain = 17 # energy gained per butterfly
         
         # Game state
         self.game_started = False
@@ -81,8 +81,8 @@ class Game:
         self.is_blowing = False
 
     def spawn_bug(self): #spawns bugs
-        x = self.width
-        y = random.randint(20, self.height - self.bug_h - 100) #dont spawn on the bottowm of the screen
+        x = random.randint(self.width - 80, self.width - 30)
+        y = random.randint(15, self.height - self.bug_h - 100) #dont spawn on the bottowm of the screen
         self.bugs.append([x, y, random.randint(0, len(self.bug_images) - 1)]) 
 
     def reset_game(self): #resets all game variables to their initial state for a new playthrough
