@@ -34,5 +34,8 @@ The idea of the game is that the little bird now gets **one last endless flight*
 
 ## Demo
 
-https://github.com/user-attachments/assets/cf6793e1-2e49-4218-ac50-205c79483760
+https://github.com/user-attachments/assets/7911d940-b918-46d9-9356-1774ece2a4b3
+
+
+
 
