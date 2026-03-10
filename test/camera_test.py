@@ -1,4 +1,3 @@
-import numpy as np
 import cv2 as cv
 
 face_cascade = cv.CascadeClassifier(cv.data.haarcascades + 'haarcascade_frontalface_default.xml')
