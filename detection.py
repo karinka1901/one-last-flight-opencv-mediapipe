@@ -59,10 +59,10 @@ class FaceDetector:
         for idx in MOUTH_POINTS:
             x = int(landmarks[idx].x * w)
             y = int(landmarks[idx].y * h)
-            cv.circle(frame, (x, y), 2, (0, 0, 255), -1)  # red
+            # cv.circle(frame, (x, y), 2, (0, 0, 255), -1)  # red
         
-        # Highlight the 4 key landmarks used for expression detection
+        # Key landmarks used for expression detection
         for idx in [61, 291, 13, 14]:
             x = int(landmarks[idx].x * w)
             y = int(landmarks[idx].y * h)
-            cv.circle(frame, (x, y), 5, (255, 0,0), -1)  # yellow
+            # cv.circle(frame, (x, y), 5, (255, 0,0), -1)  # blue

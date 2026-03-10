@@ -12,7 +12,8 @@ class Game:
         self.screen = pygame.display.set_mode((width, height))
         pygame.display.set_caption("One Last Flight")
         self.clock = pygame.time.Clock()
-        self.font = pygame.font.SysFont(None, 36)
+        self.font = pygame.font.Font("assets/fonts/WindowsXPFont.otf", 16)
+        self.font_large = pygame.font.Font("assets/fonts/WindowsXPFont.otf", 32)
 
         # Bird sprite
         self.bird_up = pygame.transform.flip(pygame.image.load("assets/sprites/up.png").convert_alpha(), True, False)
@@ -46,10 +47,17 @@ class Game:
         self.bugs = []  #all active bugs on screen
         self.bug_spawn_timer = 0
         self.bug_spawn_interval = 60  # spawn a new bug every 60 frames 
+       
+       # Distance traveled
         self.distance = 0
-        self.energy = 100   
-        self.energy_drain = 0.3 # energy lost per frame
-        self.energy_boost = 15  # energy gained per butterfly
+        
+        # Energy system
+        self.stamina = 100   
+        self.stamina_drain = 0.4 # energy lost per frame
+        self.stamina_gain = 15  # energy gained per butterfly
+        
+        # Game state
+        self.game_started = False
         self.game_over = False
 
         # Face Detection
@@ -62,17 +70,28 @@ class Game:
         self.background_y = height - self.background.get_height() 
 
         # Cloud blow image
-        self.cloud_blowing_img =pygame.transform.scale(pygame.image.load("assets/sprites/blow.png").convert_alpha(), (70, 50))
-        self.cloud_idle_img = pygame.transform.scale(pygame.image.load("assets/sprites/notblow.png").convert_alpha(), (70, 50))
+        self.cloud_blowing_img =pygame.transform.scale(pygame.image.load("assets/sprites/cloud_blow.png").convert_alpha(), (80, 55))
+        self.cloud_idle_img = pygame.transform.scale(pygame.image.load("assets/sprites/cloud_idle.png").convert_alpha(), (80, 55))
         self.is_blowing = False
 
     def spawn_bug(self):
         x = self.width
-        y = random.randint(20, self.height - self.bug_h - 20) #spawn within screen bounds
+        y = random.randint(20, self.height - self.bug_h - 100) #dont spawn on the bottowm of the screen
         self.bugs.append([x, y, random.randint(0, len(self.bug_images) - 1)]) 
+
+    def reset_game(self):
+        self.bird_y = self.height // 2
+        self.velocity = 0
+        self.distance = 0
+        self.stamina = 100
+        self.bugs = []
+        self.bug_spawn_timer = 0
+        self.game_over = False
 
     def update(self, blowing):
         if self.game_over:
+            self.velocity += 5
+            self.bird_y += self.velocity
             return
         
         self.is_blowing = blowing
@@ -80,10 +99,10 @@ class Game:
         # Distance
         self.distance += self.scroll_speed
 
-        # Energy drains over time
-        self.energy -= self.energy_drain
-        if self.energy <= 0:
-            self.energy = 0
+        # Stamina drain over time
+        self.stamina -= self.stamina_drain
+        if self.stamina <= 0:
+            self.stamina = 0
             self.game_over = True
             return
 
@@ -130,15 +149,25 @@ class Game:
 
             bug_collider = pygame.Rect(bug[0], bug[1], self.bug_w, self.bug_h)
             if bird_collider.colliderect(bug_collider):
-                self.energy = min(100, self.energy + self.energy_boost)  # replaces self.score += 1
-            elif bug[0] + self.bug_w > 0:  # still on screen
+                self.stamina = min(100, self.stamina + self.stamina_gain) 
+            elif bug[0] + self.bug_w > 0: 
                 remaining_bugs.append(bug)
+
         self.bugs = remaining_bugs
 
-    def draw(self): 
+    def draw(self):
+        #Scrolling background
         self.screen.blit(self.background, (-self.background_offset, self.background_y))
         self.screen.blit(self.background, (self.width - self.background_offset, self.background_y))
 
+        if not self.game_started:
+            start_text = self.font_large.render("One Last Flight", True, (112, 130, 156))
+            self.screen.blit(start_text, (self.width // 2 - start_text.get_width() // 2, self.height // 2 - 20))
+            prompt_text = self.font.render("Press Enter to start", True, (112, 130, 156))
+            self.screen.blit(prompt_text, (self.width // 2 - prompt_text.get_width() // 2, self.height // 2 + 20))
+            pygame.display.flip()
+            return
+    
         # Bugs
         for bug in self.bugs:
             self.screen.blit(self.bug_images[bug[2]], (bug[0], bug[1]))
@@ -150,23 +179,26 @@ class Game:
         dist_text = self.font.render(f"Distance: {self.distance / 100:.1f} m", True, (112, 130, 156))
         self.screen.blit(dist_text, (10, 10))
 
-        # Energy bar
-        bar_w = 100
-        bar_h = 16
-        bar_x = 10
-        bar_y = 45
-        pygame.draw.rect(self.screen, (80, 80, 80), (bar_x, bar_y, bar_w, bar_h))
-        fill_w = int(bar_w * self.energy / 100)
-        color = (0, 200, 0) if self.energy > 30 else (200, 0, 0)
-        pygame.draw.rect(self.screen, color, (bar_x, bar_y, fill_w, bar_h))
+        # Stamina bar
+        stamina_bar_w = 115
+        stamina_bar_h = 16
+        stamina_bar_x = 10
+        stamina_bar_y = 30
+        pygame.draw.rect(self.screen, (171, 188, 206), (stamina_bar_x, stamina_bar_y, stamina_bar_w, stamina_bar_h))
+        fill_w = int(stamina_bar_w * self.stamina / 100)
+        color = (73, 163, 204) if self.stamina > 30 else (200, 0, 0)
+        pygame.draw.rect(self.screen, color, (stamina_bar_x, stamina_bar_y, fill_w, stamina_bar_h))
+        pygame.draw.rect(self.screen, (94, 107, 140), (stamina_bar_x, stamina_bar_y, stamina_bar_w, stamina_bar_h), 2)
 
-        indicator = self.cloud_blowing_img if self.is_blowing else self.cloud_idle_img
-        self.screen.blit(indicator, (self.width - indicator.get_width() - 10, 10))
+        cloud_indicator = self.cloud_blowing_img if self.is_blowing else self.cloud_idle_img
+        self.screen.blit(cloud_indicator, (self.width - cloud_indicator.get_width() - 10, 10))
 
         # Game over
         if self.game_over:
-            go_text = self.font.render("The little birdie needs to rest", True, (112, 130, 156))
-            self.screen.blit(go_text, (self.width // 2 - go_text.get_width() // 2, self.height // 2))
+            go_text = self.font_large.render("The little sparrow rests its wings", True, (112, 130, 156))
+            self.screen.blit(go_text, (self.width // 2 - go_text.get_width() // 2, self.height // 2 -20))
+            restart_text = self.font.render("Press Enter to restart", True, (112, 130, 156))
+            self.screen.blit(restart_text, (self.width // 2 - restart_text.get_width() // 2, self.height // 2 + 20))
 
         pygame.display.flip()
 
@@ -175,6 +207,11 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                    if self.game_over:
+                        self.reset_game()
+                    elif not self.game_started:
+                        self.game_started = True
 
             blowing = False
             ret, frame = self.camera.read()
@@ -184,10 +221,9 @@ class Game:
                 self.detector.draw_mouth(frame)
                 blowing = expression == "blowing"
                 gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-                cv.imshow("Camera", cv.resize(frame, (320, 240)))
+                cv.imshow("Camera", cv.resize(frame, (200, 150)))
                 cv.waitKey(1)
-
-            if not self.game_over:
+            if self.game_started:
                 self.update(blowing)
             self.draw()
             self.clock.tick(30)
